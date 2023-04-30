@@ -12,9 +12,16 @@ def on_connect(client, userdata, flags, rc):
     else:
         logging.fatal("Failed to connect to MQTT, return code: %d\n", rc)
 
-def on_message(client, userdata, msg):
+def on_message(client: mqtt_client.Client, userdata, msg):
     url = msg.payload.decode()
-    YouTube(url).streams.first().download()
+    yt = YouTube(url)
+    yt.streams.first().download(filename='output.mp4')
+    res = client.publish(topic=topics.SEND_MESSAGE, payload="Video {} download finished".format(yt.title))
+    if res.rc == 0:
+        logging.info("message sent to {}".format(topics.SEND_MESSAGE))
+    else:
+        logging.fatal("failed to connect to MQTT, code: %d\n", res)
+
 
 def setup_mqtt(broker: str, port: int = 1883):
     client_id = "python-mqtt-{}".format(random.randint(0, 1000))
@@ -38,6 +45,8 @@ def main():
         broker_port = 1883
     else:
         broker_port = int(broker_port)
+    
+    setup_mqtt(broker=broker_host, port=broker_port)
 
 if __name__ == '__main__':
     main()
