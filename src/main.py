@@ -24,7 +24,7 @@ def on_message(client: mqtt_client.Client, userdata, msg):
 
 
 def setup_mqtt(broker: str, port: int = 1883):
-    client_id = "python-mqtt-{}".format(random.randint(0, 1000))
+    client_id = "yt-mqtt-{}".format(random.randint(0, 1000))
 
     client = mqtt_client.Client(client_id=client_id)
     client.on_connect = on_connect
@@ -39,12 +39,15 @@ def main():
     logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
     broker_host = environ.get("MQTT_HOST")
     if broker_host is None:
-        logging.fatal("broker host is empty")
+        logging.fatal("could not load mqtt host")
+    else:
+        logging.info("MQTT host: %s", broker_host)
     broker_port = environ.get("MQTT_PORT")
     if broker_port is None:
         broker_port = 1883
     else:
         broker_port = int(broker_port)
+    logging.info("MQTT port: %d", broker_port)
     
     setup_mqtt(broker=broker_host, port=broker_port)
 
