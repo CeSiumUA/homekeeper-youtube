@@ -5,6 +5,7 @@ from paho.mqtt import client as mqtt_client
 import random
 import topics
 import logging
+import datetime
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
@@ -15,8 +16,8 @@ def on_connect(client, userdata, flags, rc):
 def on_message(client: mqtt_client.Client, userdata, msg):
     url = msg.payload.decode()
     yt = YouTube(url)
-    yt.streams.order_by('resolution').desc().first().download(filename='output.mp4')
-    res = client.publish(topic=topics.SEND_MESSAGE, payload="Video {} download finished".format(yt.title))
+    yt.streams.order_by('resolution').desc().first().download(filename=f'{yt.title}.mp4')
+    res = client.publish(topic=topics.SEND_MESSAGE, payload="Video download finished: {}".format(yt.title))
     if res.rc == 0:
         logging.info("message sent to {}".format(topics.SEND_MESSAGE))
     else:
