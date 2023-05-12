@@ -17,7 +17,7 @@ def on_message(client: mqtt_client.Client, userdata, msg):
     url = msg.payload.decode()
     try:
         yt = YouTube(url)
-        yt.streams.order_by('resolution').desc().first().download(filename=f'{yt.title}.mp4')
+        yt.streams.order_by('resolution').desc().first().download(filename=f'{yt.title}.mp4', output_path='videos')
     except Exception as ex:
         client.publish(topic=topics.SEND_MESSAGE, payload="Failed to start video download")
         if hasattr(ex, 'message'):
