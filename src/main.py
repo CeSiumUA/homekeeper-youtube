@@ -6,6 +6,7 @@ import random
 import topics
 import logging
 import datetime
+import uuid
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
@@ -15,9 +16,12 @@ def on_connect(client, userdata, flags, rc):
 
 def on_message(client: mqtt_client.Client, userdata, msg):
     url = msg.payload.decode()
+    logging.info(f"got url to dowanload: {url}")
     try:
         yt = YouTube(url)
-        yt.streams.order_by('resolution').desc().first().download(filename=f'{yt.title}.mp4', output_path='videos')
+        output_file_name_uuid = str(uuid.uuid4())
+        logging.info(f"downloading video title: {yt.title}, generated uuid: {output_file_name_uuid}")
+        yt.streams.order_by('resolution').desc().first().download(filename=f'{output_file_name_uuid}.mp4', output_path='videos')
     except Exception as ex:
         client.publish(topic=topics.SEND_MESSAGE, payload="Failed to start video download")
         if hasattr(ex, 'message'):
@@ -25,6 +29,7 @@ def on_message(client: mqtt_client.Client, userdata, msg):
         else:
             logging.error(ex)
         return
+    logging.info(f"finished to download video: {url}")
     res = client.publish(topic=topics.SEND_MESSAGE, payload="Video download finished: {}".format(yt.title))
     if res.rc == 0:
         logging.info("message sent to {}".format(topics.SEND_MESSAGE))
