@@ -37,11 +37,13 @@ def on_message(client: mqtt_client.Client, userdata, msg):
         logging.fatal("failed to connect to MQTT, code: %d\n", res)
 
 
-def setup_mqtt(broker: str, port: int = 1883):
+def setup_mqtt(broker: str, port: int = 1883, broker_username: str | None = None, broker_password: str | None = None):
     client_id = "yt-mqtt-{}".format(random.randint(0, 1000))
 
     client = mqtt_client.Client(client_id=client_id)
     client.on_connect = on_connect
+    if broker_username is not None:
+        client.username_pw_set(broker_username, broker_password)
     client.connect(broker, port=port)
 
     client.subscribe(topic=topics.VIDEO_DOWNLOAD)
@@ -62,8 +64,11 @@ def main():
     else:
         broker_port = int(broker_port)
     logging.info("MQTT port: %d", broker_port)
+
+    broker_username = environ.get("MQTT_USERNAME")
+    broker_password = environ.get("MQTT_PASSWORD")
     
-    setup_mqtt(broker=broker_host, port=broker_port)
+    setup_mqtt(broker=broker_host, port=broker_port, broker_username=broker_username, broker_password=broker_password)
 
 if __name__ == '__main__':
     main()
