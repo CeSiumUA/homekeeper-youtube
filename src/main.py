@@ -21,7 +21,7 @@ def on_message(client: mqtt_client.Client, userdata, msg):
         yt = YouTube(url)
         output_file_name_uuid = str(uuid.uuid4())
         logging.info(f"downloading video title: {yt.title}, generated uuid: {output_file_name_uuid}")
-        yt.streams.order_by('resolution').desc().first().download(filename=f'{output_file_name_uuid}.mp4', output_path='videos')
+        yt.streams.filter(progressive=True, file_extension='mp4').order_by('resolution').desc().first().download(filename=f'{output_file_name_uuid}.mp4', output_path='videos')
     except Exception as ex:
         client.publish(topic=topics.SEND_MESSAGE, payload="Failed to start video download")
         if hasattr(ex, 'message'):
@@ -30,7 +30,7 @@ def on_message(client: mqtt_client.Client, userdata, msg):
             logging.error(ex)
         return
     logging.info(f"finished to download video: {url}")
-    res = client.publish(topic=topics.SEND_MESSAGE, payload="Video download finished: {}".format(yt.title))
+    res = client.publish(topic=topics.SEND_MESSAGE, payload=f"Video download finished: {yt.title}. Id: {output_file_name_uuid}")
     if res.rc == 0:
         logging.info("message sent to {}".format(topics.SEND_MESSAGE))
     else:
